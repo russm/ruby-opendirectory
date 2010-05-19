@@ -1,0 +1,8 @@
+--- 
+:session_options: 
+  ProxyAddress: od-server.example.com.au
+  ProxyUsername: diradmin
+  ProxyPassword: supersekrit
+:node_name: /LDAPv3/127.0.0.1
+:node_auth_name: diradmin
+:node_auth_password: supersekrit

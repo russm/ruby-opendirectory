@@ -1,0 +1,22 @@
+https://developer.apple.com/mac/library/navigation/#section=Frameworks&topic=Directory%20Service
+
+
+# Open Directory Programming Guide
+https://developer.apple.com/mac/library/documentation/Networking/Conceptual/Open_Directory/Introduction/Introduction.html
+
+
+https://developer.apple.com/mac/library/documentation/MacOSXServer/Reference/ODSession_Class/Reference/NSView.html
+https://developer.apple.com/mac/library/documentation/MacOSXServer/Reference/ODNode_Class/Reference/NSView.html
+https://developer.apple.com/mac/library/documentation/MacOSXServer/Reference/ODQuery_Class/Reference/NSView.html
+https://developer.apple.com/mac/library/documentation/MacOSXServer/Reference/ODRecord_Class/Reference/NSView.html
+
+
+
+# Open Directory Functions Reference (not obj-c, current stuff)
+https://developer.apple.com/mac/library/documentation/Networking/Reference/OpenDirectoryFramework/Reference/reference.html
+
+# Directory Services Reference (not obj-c, deprecated stuff)
+https://developer.apple.com/mac/library/documentation/Networking/Reference/Open_Directory_Ref/Reference/reference.html
+
+# Directory Service Framework Reference (largely deprecated stuff?)
+https://developer.apple.com/mac/library/documentation/Networking/Reference/DirectoryServiceFramework/index.html
