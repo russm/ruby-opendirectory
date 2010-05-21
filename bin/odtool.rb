@@ -49,8 +49,19 @@ module OpenDirectory
       @node = ODNode.node_with_config @config
     end
 
+    def read_document io
+      yaml = ""
+      @stdin.each_line do |line|
+        yaml << line
+        break if line.eql? "...\n"
+      end
+      obj = YAML.load yaml
+    end
+
     def run
-      YAML.load_documents @stdin do |obj|
+      # XXX surely this can be done with YAML.each_document or something, somehow?
+      while true do
+        obj = read_document @stdin
         raise "request is not an array: #{obj.inspect}" unless obj.is_a? Array
         verb = obj.shift
         raise "unimplemented verb: #{verb}" unless self.respond_to? "do_verb_#{verb}".to_sym
@@ -58,6 +69,7 @@ module OpenDirectory
         raise "unsupported record type: #{record_type}" unless NSODRecord::RECORD_TYPE_ATTRIBUTES.keys.include? record_type
         result = self.send("do_verb_#{verb}".to_sym, record_type, obj)
         @stdout.puts result.to_yaml
+        @stdout.puts "..."
       end
     end
 

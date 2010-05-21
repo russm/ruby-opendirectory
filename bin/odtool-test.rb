@@ -2,26 +2,43 @@
 
 require 'yaml'
 
+conn = IO.popen "./bin/odtool.rb", "r+"
+
+
+def conn.transact request
+  STDERR.puts "=> request is #{request.inspect}"
+  self.puts request.to_yaml
+  self.puts "..."
+  STDERR.puts "=> waiting for reply"
+  yaml = ""
+  self.each_line do |line|
+    yaml << line
+    break if line.eql? "...\n"
+  end
+  result = YAML.load yaml
+  STDERR.puts "=> reply was #{result.inspect}"
+end
+
 # find a user
-puts [ "READ", "dsRecTypeStandard:Users", "dsAttrTypeStandard:RecordName=russm" ].to_yaml
+conn.transact [ "READ", "dsRecTypeStandard:Users", "dsAttrTypeStandard:RecordName=russm" ]
 
 # find some users (josh, raylene)
-puts [ "READ", "dsRecTypeStandard:Users", "dsAttrTypeStandard:RealName~re" ].to_yaml
+conn.transact [ "READ", "dsRecTypeStandard:Users", "dsAttrTypeStandard:RealName~re" ]
 
 # find someone by unique_id
-puts [ "READ", "dsRecTypeStandard:Users", "dsAttrTypeStandard:UniqueID=1000" ].to_yaml
+conn.transact [ "READ", "dsRecTypeStandard:Users", "dsAttrTypeStandard:UniqueID=1000" ]
 
 # create a user
-puts [ "CREATE", "dsRecTypeStandard:Users", "russm-test", { "dsAttrTypeStandard:Password" => "Pa5sWoRd", "dsAttrTypeStandard:UniqueID" => "2099", "dsAttrTypeStandard:FirstName" => "Rusty", "dsAttrTypeStandard:LastName" => "Tester" } ].to_yaml
+conn.transact [ "CREATE", "dsRecTypeStandard:Users", "russm-test", { "dsAttrTypeStandard:Password" => "Pa5sWoRd", "dsAttrTypeStandard:UniqueID" => "2099", "dsAttrTypeStandard:FirstName" => "Rusty", "dsAttrTypeStandard:LastName" => "Tester" } ]
 
 # update some attributes
-puts [ "UPDATE", "dsRecTypeStandard:Users", { :record_name => "russm-test", :unique_id => "2099" }, { "dsAttrTypeStandard:JobTitle" => "Technical Lead", "dsAttrTypeStandard:Company" => "Blue Fish Productions" } ].to_yaml
+conn.transact [ "UPDATE", "dsRecTypeStandard:Users", { :record_name => "russm-test", :unique_id => "2099" }, { "dsAttrTypeStandard:JobTitle" => "Technical Lead", "dsAttrTypeStandard:Company" => "Blue Fish Productions" } ]
 
 # find the newly created record
-puts [ "READ", "dsRecTypeStandard:Users", "dsAttrTypeStandard:RecordName=russm-test" ].to_yaml
+conn.transact [ "READ", "dsRecTypeStandard:Users", "dsAttrTypeStandard:RecordName=russm-test" ]
 
 # find all records
-puts [ "READ", "dsRecTypeStandard:Users", nil, "dsAttrTypeStandard:UniqueID", "dsAttrTypeStandard:RealName" ].to_yaml
+conn.transact [ "READ", "dsRecTypeStandard:Users", nil, "dsAttrTypeStandard:UniqueID", "dsAttrTypeStandard:RealName" ]
 
 # delete the new record
-puts [ "DELETE", "dsRecTypeStandard:Users", "russm-test" ].to_yaml
+conn.transact [ "DELETE", "dsRecTypeStandard:Users", "russm-test" ]

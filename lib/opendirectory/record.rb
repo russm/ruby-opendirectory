@@ -86,7 +86,7 @@ class ODRecord
 
     # deal with attributes that need specific updating
     password = attributes.delete(AttributeTypePassword)
-    if attributes.key?(AttributeTypeFirstName) or attributes.key?(AttributeTypeLastName) then
+    if attributes.key?(AttributeTypeFirstName) || attributes.key?(AttributeTypeLastName) then
       raise "both firstname and lastname must be set together" unless attributes.key?(AttributeTypeFirstName) and attributes.key?(AttributeTypeLastName)
       attributes[AttributeTypeFullName] = "#{attributes[AttributeTypeFirstName]} #{attributes[AttributeTypeLastName]}".strip
     end
