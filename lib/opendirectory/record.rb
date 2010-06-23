@@ -1,7 +1,7 @@
 class ODRecord
   include OpenDirectory::Constants
   RECORD_TYPE_ATTRIBUTES = {
-    RecordTypeUsers => [AttributeTypeUniqueID, AttributeTypeRecordName, AttributeTypeFirstName, AttributeTypeLastName, AttributeTypeEMailAddress, AttributeTypeJobTitle, AttributeTypeDepartment, AttributeTypeCompany, AttributeTypeStreet, AttributeTypeCity, AttributeTypeState, AttributeTypePostalCode, AttributeTypeCountry, AttributeTypeMobileNumber, AttributeTypePhoneNumber, AttributeTypeFaxNumber]
+    RecordTypeUsers => [AttributeTypeUniqueID, AttributeTypePrimaryGroupID, AttributeTypeRecordName, AttributeTypeFirstName, AttributeTypeLastName, AttributeTypeEMailAddress, AttributeTypeJobTitle, AttributeTypeDepartment, AttributeTypeCompany, AttributeTypeStreet, AttributeTypeCity, AttributeTypeState, AttributeTypePostalCode, AttributeTypeCountry, AttributeTypeMobileNumber, AttributeTypePhoneNumber, AttributeTypeFaxNumber]
   }
 
   def self.find_in_node node, record_type, attribute, match_type, query_values, return_attributes
@@ -34,10 +34,18 @@ class ODRecord
     validate_record_type record_type
     attributes = clean_hash attributes
 
+    # OD attributes are all strings, I think
+    attributes.each_key do |key|
+      attributes[key] = attributes[key].to_s
+    end
+
     # validate we've got enough info to create the record
     # XXX this is currently specific to RecordTypeUsers
-    unique_id = attributes[AttributeTypeUniqueID] = attributes[AttributeTypeUniqueID]
+    unique_id = attributes[AttributeTypeUniqueID]
     password = attributes.delete(AttributeTypePassword)
+    attributes.delete_if do |key,value|
+      ! RECORD_TYPE_ATTRIBUTES[RecordTypeUsers].include? key
+    end
     raise "create requires a numeric #{AttributeTypeUniqueID} attribute, had #{unique_id.inspect}" unless /^\d+$/.match(unique_id)
     raise "create requires a non-empty #{AttributeTypePassword} attribute" unless password
 
@@ -86,6 +94,13 @@ class ODRecord
 
     # deal with attributes that need specific updating
     password = attributes.delete(AttributeTypePassword)
+
+    # dump attributes we don't care about (or aren't real attributes)
+    attributes.delete_if do |key,value|
+      ! RECORD_TYPE_ATTRIBUTES[RecordTypeUsers].include? key
+    end
+
+    # generate the full name if required
     if attributes.key?(AttributeTypeFirstName) || attributes.key?(AttributeTypeLastName) then
       raise "both firstname and lastname must be set together" unless attributes.key?(AttributeTypeFirstName) and attributes.key?(AttributeTypeLastName)
       attributes[AttributeTypeFullName] = "#{attributes[AttributeTypeFirstName]} #{attributes[AttributeTypeLastName]}".strip
@@ -100,7 +115,7 @@ class ODRecord
       ok = record.setValue v, forAttribute:k, error:error
       error[0].barf unless ok
     end
-    if password then
+    if password && !password.empty? then
       ok = record.changePassword nil, toPassword:password, error:error
       error[0].barf unless ok
     end
