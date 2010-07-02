@@ -28,6 +28,7 @@
 $: << File.join(File.dirname(__FILE__), '..', 'lib')
 
 require 'opendirectory'
+require 'wikid'
 require 'yaml'
 
 module OpenDirectory
@@ -73,6 +74,17 @@ module OpenDirectory
       end
     end
 
+    def set_wikid_email record_name, email
+      return nil unless wikid_config = @config[:wikid]
+      connection = Wikid.new wikid_config["rpc_url"], wikid_config["auth_name"], wikid_config["auth_password"]
+      connection.set_user_settings record_name, 'settings_notification_email' => email
+    end
+
+    def set_wikid_email_perhaps record_name, attributes
+      return nil unless email = attributes[AttributeTypeEMailAddress]
+      set_wikid_email record_name, email
+    end
+
     def do_verb_READ record_type, args
       text_query = args.shift.to_s
       query = text_query.match %r"^(.*?)([#{MATCHES.keys.join}])(.*)$"
@@ -91,12 +103,14 @@ module OpenDirectory
     def do_verb_UPDATE record_type, args
       match, attributes = args
       record = ODRecord.update_in_node @node, record_type, match, attributes
+      set_wikid_email_perhaps match[:record_name], attributes
       record.to_hash
     end
 
     def do_verb_CREATE record_type, args
       record_name, attributes = args
       record = ODRecord.create_in_node @node, record_type, record_name, attributes
+      set_wikid_email_perhaps record_name, attributes
       record.to_hash
     end
 
