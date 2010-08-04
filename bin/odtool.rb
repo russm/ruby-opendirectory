@@ -74,15 +74,16 @@ module OpenDirectory
       end
     end
 
-    def set_wikid_email record_name, email
+    def set_wikid_preferences_perhaps record_name, attributes
+      wikid_attributes = Hash.new
+      wikid_attributes['settings_notification_email'] = attributes[AttributeTypeEMailAddress]
+      full_name = "#{attributes[AttributeTypeFirstName]} #{attributes[AttributeTypeLastName]}".strip
+      wikid_attributes['longName'] = full_name unless full_name.empty?
+      wikid_attributes.delete_if { |k,v| v.nil? }
+      return nil if wikid_attributes.empty?
       return nil unless wikid_config = @config[:wikid]
       connection = Wikid.new wikid_config["rpc_url"], wikid_config["auth_name"], wikid_config["auth_password"]
-      connection.set_user_settings record_name, 'settings_notification_email' => email
-    end
-
-    def set_wikid_email_perhaps record_name, attributes
-      return nil unless email = attributes[AttributeTypeEMailAddress]
-      set_wikid_email record_name, email
+      connection.set_user_settings record_name, wikid_attributes
     end
 
     def do_verb_READ record_type, args
@@ -103,14 +104,14 @@ module OpenDirectory
     def do_verb_UPDATE record_type, args
       match, attributes = args
       record = ODRecord.update_in_node @node, record_type, match, attributes
-      set_wikid_email_perhaps match[:record_name], attributes
+      set_wikid_preferences_perhaps match[:record_name], attributes
       record.to_hash
     end
 
     def do_verb_CREATE record_type, args
       record_name, attributes = args
       record = ODRecord.create_in_node @node, record_type, record_name, attributes
-      set_wikid_email_perhaps record_name, attributes
+      set_wikid_preferences_perhaps record_name, attributes
       record.to_hash
     end
 
